@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Requests | Carpool Finder</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="requests">
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo">🚗 Carpool Finder</a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="rides.html">Find Ride</a>
+        <a href="offer-ride.html">Offer Ride</a>
+        <a href="requests.html">Requests</a>
+        <a href="dashboard.html">Dashboard</a>
+      </nav>
+      <div class="auth-links">
+        <a href="login.html" class="btn btn-outline" data-auth="login">Login</a>
+        <a href="register.html" class="btn btn-primary" data-auth="register">Register</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container page-shell">
+    <section class="content-panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Manage rides</p>
+          <h1>Your requests</h1>
+        </div>
+      </div>
+
+      <div class="requests-grid">
+        <div>
+          <h2>My requests</h2>
+          <div id="my-requests" class="request-list"></div>
+        </div>
+
+        <div>
+          <h2>Requests for my trips</h2>
+          <div id="driver-requests" class="request-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>

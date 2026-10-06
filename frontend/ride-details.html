@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ride Details | Carpool Finder</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="ride-details">
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo">🚗 Carpool Finder</a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="rides.html">Find Ride</a>
+        <a href="offer-ride.html">Offer Ride</a>
+        <a href="requests.html">Requests</a>
+        <a href="dashboard.html">Dashboard</a>
+      </nav>
+      <div class="auth-links">
+        <a href="login.html" class="btn btn-outline" data-auth="login">Login</a>
+        <a href="register.html" class="btn btn-primary" data-auth="register">Register</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container page-shell">
+    <div id="trip-details" class="trip-detail-section"></div>
+
+    <section class="request-panel">
+      <h2>Request this ride</h2>
+      <form id="request-ride-form">
+        <div class="form-group">
+          <label for="message">Message to driver</label>
+          <textarea id="message" name="message" rows="4" placeholder="Hi, I’d like to join this ride."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Send request</button>
+        <p class="form-message" data-message></p>
+      </form>
+    </section>
+  </main>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register | Carpool Finder</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo">🚗 Carpool Finder</a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="rides.html">Find Ride</a>
+        <a href="offer-ride.html">Offer Ride</a>
+      </nav>
+      <div class="auth-links">
+        <a href="login.html" class="btn btn-outline">Login</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container auth-page">
+    <div class="auth-card">
+      <h1>Create account</h1>
+      <p class="auth-subtitle">Join your commute community</p>
+
+      <form data-auth-form data-endpoint="/auth/register" data-submit-text="Create account">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input id="name" name="name" type="text" placeholder="Jane Doe" required />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" placeholder="you@example.com" required />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" placeholder="Minimum 6 characters" required />
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone (optional)</label>
+          <input id="phone" name="phone" type="tel" placeholder="(555) 123-4567" />
+        </div>
+
+        <div class="form-group">
+          <label for="role">Role</label>
+          <select id="role" name="role">
+            <option value="both">Both</option>
+            <option value="driver">Driver</option>
+            <option value="rider">Rider</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Create account</button>
+        <p class="form-message" data-message></p>
+      </form>
+
+      <p class="auth-switch">
+        Already have an account? <a href="login.html">Login here</a>
+      </p>
+    </div>
+  </main>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>

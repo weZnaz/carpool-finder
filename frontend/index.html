@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carpool Finder — Share your ride</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="home">
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo">🚗 Carpool Finder</a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="rides.html">Find Ride</a>
+        <a href="offer-ride.html">Offer Ride</a>
+        <a href="dashboard.html">Dashboard</a>
+      </nav>
+      <div class="auth-links">
+        <a href="login.html" class="btn btn-outline" data-auth="login">Login</a>
+        <a href="register.html" class="btn btn-primary" data-auth="register">Register</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Carpool Finder</h1>
+        <p class="tagline">
+          Share your ride.<br />
+          Save money.<br />
+          Travel together.
+        </p>
+        <div class="hero-buttons">
+          <a href="rides.html" class="btn btn-primary btn-lg">Find a Ride</a>
+          <a href="offer-ride.html" class="btn btn-outline btn-lg">Offer a Ride</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="features container">
+      <div class="feature-card">
+        <div class="icon">🔎</div>
+        <h3>Find rides</h3>
+        <p>Search trips between your city and campus.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🚙</div>
+        <h3>Offer rides</h3>
+        <p>Post your trip and share empty seats.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">💰</div>
+        <h3>Save money</h3>
+        <p>Split fuel costs with fellow travelers.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🤝</div>
+        <h3>Travel together</h3>
+        <p>Meet new people on every journey.</p>
+      </div>
+    </section>
+
+    <section class="container featured-section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Live rides</p>
+          <h2>Active rides near you</h2>
+        </div>
+        <a href="rides.html" class="btn btn-primary">See all rides</a>
+      </div>
+      <div id="home-trips" class="trip-list"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 Carpool Finder. Built for learning.</p>
+    </div>
+  </footer>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>

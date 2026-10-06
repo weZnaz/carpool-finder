@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find a Ride | Carpool Finder</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="rides">
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo">🚗 Carpool Finder</a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="rides.html">Find Ride</a>
+        <a href="offer-ride.html">Offer Ride</a>
+        <a href="requests.html">Requests</a>
+        <a href="dashboard.html">Dashboard</a>
+      </nav>
+      <div class="auth-links">
+        <a href="login.html" class="btn btn-outline" data-auth="login">Login</a>
+        <a href="register.html" class="btn btn-primary" data-auth="register">Register</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container page-shell">
+    <section class="content-panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Trips</p>
+          <h1>Find a ride</h1>
+        </div>
+        <a href="offer-ride.html" class="btn btn-primary">Offer a ride</a>
+      </div>
+
+      <form class="filter-form" data-trip-filter>
+        <div class="form-group inline-group">
+          <label for="start_location">From</label>
+          <input id="start_location" name="start_location" type="text" placeholder="e.g. Downtown" />
+        </div>
+        <div class="form-group inline-group">
+          <label for="destination">To</label>
+          <input id="destination" name="destination" type="text" placeholder="e.g. Campus" />
+        </div>
+        <div class="form-group inline-group">
+          <label for="trip_date">Date</label>
+          <input id="trip_date" name="trip_date" type="date" />
+        </div>
+        <div class="form-group inline-group">
+          <label for="sort">Sort</label>
+          <select id="sort" name="sort">
+            <option value="departure">Soonest departure</option>
+            <option value="newest">Recently posted</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Search</button>
+      </form>
+
+      <div id="trip-list" class="trip-list"></div>
+    </section>
+  </main>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>

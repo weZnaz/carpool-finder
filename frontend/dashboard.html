@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | Carpool Finder</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="dashboard">
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo">🚗 Carpool Finder</a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="rides.html">Find Ride</a>
+        <a href="offer-ride.html">Offer Ride</a>
+        <a href="requests.html">Requests</a>
+        <a href="dashboard.html">Dashboard</a>
+      </nav>
+      <div class="auth-links">
+        <button class="btn btn-outline" data-auth="logout">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container dashboard-page">
+    <section class="dashboard-card">
+      <h1 data-dashboard="welcome">Loading profile...</h1>
+      <div class="user-details" data-dashboard="user"></div>
+    </section>
+
+    <section class="request-panel">
+      <div class="panel-header">
+        <div><p class="eyebrow">Your activity</p><h2>Upcoming rides</h2></div>
+      </div>
+      <div id="dashboard-trips" class="trip-list"></div>
+    </section>
+
+    <section class="request-panel">
+      <div class="panel-header">
+        <div><p class="eyebrow">Your activity</p><h2>Ride requests</h2></div>
+      </div>
+      <div id="dashboard-requests" class="request-list"></div>
+    </section>
+  </main>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>
