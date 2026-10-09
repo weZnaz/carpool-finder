@@ -92,7 +92,7 @@ Carpool Finder is a ride-sharing web application that connects drivers with avai
 **Syed Nazmul Islam Ramim**
 
 * GitHub: [@weZnaz](https://github.com/weZnaz)
-* LinkedIn: [LinkedIn Profile](https://www.linkedin.com/weznaz)
+* LinkedIn: [LinkedIn Profile](https://www.linkedin.com/in/weznaz/)
 
 ## 📄 License
 
