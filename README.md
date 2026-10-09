@@ -1,4 +1,3 @@
-markdown
 # 🚗 Carpool Finder
 
 > **Share your ride. Save money. Travel together.**
@@ -135,6 +134,10 @@ A simple, clean web app where:
 ---
 
 ## 🏗️ System Architecture
+
+```
+
+
 USER
 │
 ↓
@@ -154,8 +157,8 @@ Node.js + Express
 ↓
 Aiven MySQL (Cloud)
 
-text
 
+```
 ### Why this architecture?
 
 - **Separation of concerns** — Frontend never touches the database directly
@@ -207,6 +210,10 @@ text
 | `created_at` | TIMESTAMP | Auto-set |
 
 ### Relationships
+
+```
+
+
 users (1) ──────< trips (many)
 │
 │
@@ -216,8 +223,8 @@ ride_requests (many)
 │
 users (1) ──────────┘
 
-text
 
+```
 - One driver → many trips
 - One trip → many ride requests
 - One rider → many ride requests
@@ -228,10 +235,13 @@ text
 ## 🔌 API Endpoints
 
 ### Base URL
-https://carpool-finder-vlgv.onrender.com/api
+```
 
-text
 
+[https://carpool-finder-vlgv.onrender.com/api](https://carpool-finder-vlgv.onrender.com/api)
+
+
+```
 ### Authentication
 
 | Method | Endpoint | Auth | Description |
@@ -251,10 +261,13 @@ text
 | `DELETE` | `/trips/:id` | 🔒 Owner only | Cancel a trip |
 
 **Query parameters for `/trips`:**
+```
+
+
 GET /api/trips?from=Dhaka&to=Savar&date=2026-10-10
 
-text
 
+```
 ### Ride Requests
 
 | Method | Endpoint | Auth | Description |
@@ -308,22 +321,34 @@ Make sure you have these installed:
 ```bash
 git clone https://github.com/weZnaz/carpool-finder.git
 cd carpool-finder
-2. Set up the database
+```
 
-bash
+
+**2. Set up the database**
+
+
+```
 mysql -u root -p < database/schema.sql
-Or open MySQL Workbench and run the contents of database/schema.sql.
+```
 
-3. Install backend dependencies
 
-bash
+Or open MySQL Workbench and run the contents of `database/schema.sql`.
+
+**3. Install backend dependencies**
+
+
+```
 cd backend
 npm install
-4. Configure environment variables
+```
 
-Create backend/.env:
 
-env
+**4. Configure environment variables**
+
+Create `backend/.env`:
+
+
+```
 PORT=3000
 
 DB_HOST=localhost
@@ -334,41 +359,62 @@ DB_NAME=carpool_finder
 
 JWT_SECRET=change_this_to_a_long_random_string
 JWT_EXPIRES_IN=7d
-5. Start the backend
+```
 
-bash
+
+**5. Start the backend**
+
+
+```
 npm run dev
+```
+
+
 You should see:
 
-text
+
+```
 ✅ MySQL connected successfully
 🚀 Server running at http://localhost:3000
-6. Open the frontend
+```
 
-Open frontend/index.html in your browser, or use the Live Server extension in VS Code.
 
-The frontend expects the API at http://localhost:3000/api.
+**6. Open the frontend**
 
-Environment Variables
-Variable	Description	Example
-PORT	Server port	3000
-DB_HOST	MySQL host	localhost
-DB_PORT	MySQL port	3306
-DB_USER	MySQL user	root
-DB_PASSWORD	MySQL password	secret
-DB_NAME	Database name	carpool_finder
-DB_SSL	Use SSL for DB	false (local) / true (cloud)
-JWT_SECRET	Secret for signing tokens	long random string
-JWT_EXPIRES_IN	Token lifetime	7d
-🌍 Deployment
+Open `frontend/index.html` in your browser, or use the **Live Server** extension in VS Code.
+
+The frontend expects the API at `http://localhost:3000/api`.
+
+### Environment Variables
+
+| **Variable**     | **Description**           | **Example**                      |
+| :--------------- | :------------------------ | :------------------------------- |
+| `PORT`           | Server port               | `3000`                           |
+| `DB_HOST`        | MySQL host                | `localhost`                      |
+| `DB_PORT`        | MySQL port                | `3306`                           |
+| `DB_USER`        | MySQL user                | `root`                           |
+| `DB_PASSWORD`    | MySQL password            | `secret`                         |
+| `DB_NAME`        | Database name             | `carpool_finder`                 |
+| `DB_SSL`         | Use SSL for DB            | `false` (local) / `true` (cloud) |
+| `JWT_SECRET`     | Secret for signing tokens | long random string               |
+| `JWT_EXPIRES_IN` | Token lifetime            | `7d`                             |
+
+---
+
+## 🌍 Deployment
+
 The application is deployed across three services:
 
-Layer	Service	Notes
-Frontend + Backend	Render	Auto-deploys on git push to main
-Database	Aiven	Cloud MySQL with SSL
-Source Code	GitHub	Version control
-Deployment Flow
-text
+| **Layer**          | **Service**                   | **Notes**                            |
+| :----------------- | :---------------------------- | :----------------------------------- |
+| Frontend + Backend | [Render](https://render.com/) | Auto-deploys on `git push` to `main` |
+| Database           | [Aiven](https://aiven.io/)    | Cloud MySQL with SSL                 |
+| Source Code        | [GitHub](https://github.com/) | Version control                      |
+
+### Deployment Flow
+
+
+```
 Local development
       ↓
 git push origin main
@@ -380,23 +426,27 @@ Render detects new commit
 Render builds + deploys
       ↓
 Live at carpool-finder-vlgv.onrender.com
-Render Blueprint
-The project includes a render.yaml blueprint for one-click deployment. To deploy your own copy:
+```
 
-Fork this repository
 
-Go to Render Dashboard → New + → Blueprint
+### Render Blueprint
 
-Connect your fork
+The project includes a `render.yaml` blueprint for one-click deployment. To deploy your own copy:
 
-Fill in the environment variables (see Environment Variables)
+1. Fork this repository
+2. Go to [Render Dashboard](https://dashboard.render.com/) → **New +** → **Blueprint**
+3. Connect your fork
+4. Fill in the environment variables (see Environment Variables)
+5. Click **Apply**
 
-Click Apply
+See [DEPLOYMENT.md](https://deployment.md/) for the full step-by-step guide.
 
-See DEPLOYMENT.md for the full step-by-step guide.
+---
 
-📁 Project Structure
-text
+## 📁 Project Structure
+
+
+```
 carpool-finder/
 │
 ├── frontend/                    # Static site (served by Express)
@@ -448,68 +498,128 @@ carpool-finder/
 ├── DEPLOYMENT.md                # Deployment guide
 ├── README.md                    # This file
 └── .gitignore
-📸 Screenshots
-🏠 Homepage
-https://docs/screenshots/homepage.png
+```
 
-🔍 Find a Ride
-https://docs/screenshots/find-ride.png
 
-🚗 Trip Details
-https://docs/screenshots/trip-details.png
+---
 
-📝 Offer a Ride
-https://docs/screenshots/offer-ride.png
+## 📸 Screenshots
 
-📊 Dashboard
-https://docs/screenshots/dashboard.png
+### 🏠 Homepage
 
-📬 Driver Requests
-https://docs/screenshots/requests.png
+[https://docs/screenshots/homepage.png](https://docs/screenshots/homepage.png)
 
-📌 Note to contributors: Screenshots live in docs/screenshots/. To update, take fresh ones and commit them.
+### 🔍 Find a Ride
 
-🗺️ Roadmap
-Version 1.0 (Current) ✅
-☑ User authentication (JWT + bcrypt)
-☑ Trip creation & management
-☑ Trip search with filters
-☑ Ride requests (create, accept, reject, cancel)
-☑ Responsive design
-☑ Cloud deployment
-Version 2.0 (Planned)
-□ Real-time chat between driver and rider
-□ Online payment integration (bKash / Stripe)
-□ Rating & review system
-□ Email notifications
-□ Google Maps integration
-□ Push notifications
-□ Profile photos and verification
-Version 3.0 (Future)
-□ AI-powered ride matching
-□ Mobile app (React Native)
-□ Multi-language support
-□ Advanced admin dashboard
-□ Analytics & reporting
-🤝 Contributing
+[https://docs/screenshots/find-ride.png](https://docs/screenshots/find-ride.png)
+
+### 🚗 Trip Details
+
+[https://docs/screenshots/trip-details.png](https://docs/screenshots/trip-details.png)
+
+### 📝 Offer a Ride
+
+[https://docs/screenshots/offer-ride.png](https://docs/screenshots/offer-ride.png)
+
+### 📊 Dashboard
+
+[https://docs/screenshots/dashboard.png](https://docs/screenshots/dashboard.png)
+
+### 📬 Driver Requests
+
+[https://docs/screenshots/requests.png](https://docs/screenshots/requests.png)
+
+> 📌 **Note to contributors:** Screenshots live in `docs/screenshots/`. To update, take fresh ones and commit them.
+
+---
+
+## 🗺️ Roadmap
+
+### Version 1.0 (Current) ✅
+
+- ☑ 
+
+  User authentication (JWT + bcrypt)
+- ☑ 
+
+  Trip creation & management
+- ☑ 
+
+  Trip search with filters
+- ☑ 
+
+  Ride requests (create, accept, reject, cancel)
+- ☑ 
+
+  Responsive design
+- ☑ 
+
+  Cloud deployment
+
+### Version 2.0 (Planned)
+
+- □ 
+
+  Real-time chat between driver and rider
+- □ 
+
+  Online payment integration (bKash / Stripe)
+- □ 
+
+  Rating & review system
+- □ 
+
+  Email notifications
+- □ 
+
+  Google Maps integration
+- □ 
+
+  Push notifications
+- □ 
+
+  Profile photos and verification
+
+### Version 3.0 (Future)
+
+- □ 
+
+  AI-powered ride matching
+- □ 
+
+  Mobile app (React Native)
+- □ 
+
+  Multi-language support
+- □ 
+
+  Advanced admin dashboard
+- □ 
+
+  Analytics & reporting
+
+---
+
+## 🤝 Contributing
+
 Contributions, issues, and feature requests are welcome!
 
-Fork the repository
-
-Create a branch: git checkout -b feature/AmazingFeature
-
-Commit changes: git commit -m "Add some AmazingFeature"
-
-Push to branch: git push origin feature/AmazingFeature
-
-Open a Pull Request
+1. **Fork** the repository
+2. **Create** a branch: `git checkout -b feature/AmazingFeature`
+3. **Commit** changes: `git commit -m "Add some AmazingFeature"`
+4. **Push** to branch: `git push origin feature/AmazingFeature`
+5. **Open** a Pull Request
 
 Please make sure to update tests as appropriate and follow the existing code style.
 
-📄 License
-Distributed under the MIT License. See LICENSE for more information.
+---
 
-text
+## 📄 License
+
+Distributed under the **MIT License**. See [`LICENSE`](https://license/) for more information.
+
+
+```
 MIT License
 
 Copyright (c) 2026 Syed Nazmul Islam Ramim
@@ -531,30 +641,33 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-📬 Contact
-Syed Nazmul Islam Ramim
+```
 
-🐙 GitHub: @weZnaz
 
-📧 Email: your.email@example.com
+---
 
-💼 LinkedIn: linkedin.com/in/yourprofile
+## 📬 Contact
 
-Project Link: https://github.com/weZnaz/carpool-finder
+**Syed Nazmul Islam Ramim**
 
-🙏 Acknowledgments
-Node.js — JavaScript runtime
+- 🐙 GitHub: [@weZnaz](https://github.com/weZnaz)
+- 📧 Email: syednazmulislamramim@gmail.com
+- 💼 LinkedIn: [linkedin.com/in/yourprofile](https://linkedin.com/in/weznaz)
 
-Express — Web framework
+**Project Link:** https://github.com/weZnaz/carpool-finder
 
-MySQL — Database
+---
 
-Aiven — Cloud MySQL hosting
+##  Acknowledgments
 
-Render — App hosting
+- [Node.js](https://nodejs.org/) — JavaScript runtime
+- [Express](https://expressjs.com/) — Web framework
+- [MySQL](https://www.mysql.com/) — Database
+- [Aiven](https://aiven.io/) — Cloud MySQL hosting
+- [Render](https://render.com/) — App hosting
+- [Shields.io](https://shields.io/) — Badges
 
-Shields.io — Badges
 
-Best-README-Template — Inspiration
+---
 
-<p align="center"> <strong>Built with ❤️ by <a href="https://github.com/weZnaz">Syed Nazmul Islam Ramim</a></strong> <br> <em>⭐ Star this repo if you found it useful!</em> </p> ```
+<p align="center"><strong>Built with ❤️ by <a href="https://github.com/weZnaz">Syed Nazmul Islam Ramim</a></strong><br><em>⭐ Star this repo if you found it useful!</em></p>
