@@ -4,18 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard | Carpool Finder</title>
+  <meta name="theme-color" content="#fefcf9" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body data-page="dashboard">
   <header class="navbar">
     <div class="container nav-inner">
-      <a href="index.html" class="logo">🚗 Carpool Finder</a>
+      <a href="index.html" class="logo"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 1.3-4.2A2.5 2.5 0 0 1 8.7 7h6.6a2.5 2.5 0 0 1 2.4 1.8L19 13v5h-2v-2H7v2H5v-5Z"/><path d="M5 13h14M8 16h.01M16 16h.01"/></svg></span>Carpool Finder</a>
       <nav>
         <a href="index.html">Home</a>
         <a href="rides.html">Find Ride</a>
         <a href="offer-ride.html">Offer Ride</a>
         <a href="requests.html">Requests</a>
-        <a href="dashboard.html">Dashboard</a>
+        <a href="dashboard.html" aria-current="page">Dashboard</a>
       </nav>
       <div class="auth-links">
         <button class="btn btn-outline" data-auth="logout">Logout</button>
@@ -24,24 +28,26 @@
   </header>
 
   <main class="container dashboard-page">
-    <section class="dashboard-card">
-      <h1 data-dashboard="welcome">Loading profile...</h1>
-      <div class="user-details" data-dashboard="user"></div>
+    <section class="dashboard-welcome">
+      <div class="dashboard-avatar" data-dashboard="avatar">CF</div>
+      <div><p class="eyebrow">Your commute, at a glance</p><h1 data-dashboard="welcome">Loading profile...</h1><div class="user-details" data-dashboard="user"></div></div>
+      <a class="btn btn-primary" href="offer-ride.html">Offer a ride <span aria-hidden="true">→</span></a>
     </section>
-
-    <section class="request-panel">
-      <div class="panel-header">
-        <div><p class="eyebrow">Your activity</p><h2>Upcoming rides</h2></div>
-      </div>
-      <div id="dashboard-trips" class="trip-list"></div>
+    <section class="dashboard-stats" aria-label="Ride activity">
+      <article><span>Trips offered</span><strong data-dashboard-stat="trips">—</strong><small>rides you have shared</small></article>
+      <article><span>Requests made</span><strong data-dashboard-stat="requests">—</strong><small>seats you have asked for</small></article>
+      <article><span>Awaiting a reply</span><strong data-dashboard-stat="pending">—</strong><small>pending ride requests</small></article>
     </section>
-
-    <section class="request-panel">
-      <div class="panel-header">
-        <div><p class="eyebrow">Your activity</p><h2>Ride requests</h2></div>
-      </div>
-      <div id="dashboard-requests" class="request-list"></div>
-    </section>
+    <div class="dashboard-columns">
+      <section class="request-panel dashboard-column">
+        <div class="panel-header"><div><p class="eyebrow">Behind the wheel</p><h2>My offered rides</h2></div><a class="text-link" href="offer-ride.html">Manage rides <span aria-hidden="true">→</span></a></div>
+        <div id="dashboard-trips" class="trip-list"></div>
+      </section>
+      <section class="request-panel dashboard-column">
+        <div class="panel-header"><div><p class="eyebrow">Along for the ride</p><h2>My ride requests</h2></div><a class="text-link" href="rides.html">Find a ride <span aria-hidden="true">→</span></a></div>
+        <div id="dashboard-requests" class="request-list"></div>
+      </section>
+    </div>
   </main>
 
   <script src="js/auth.js"></script>

@@ -54,6 +54,59 @@ function formatDate(value) {
   return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+function relativeTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Sent recently';
+  const seconds = Math.round((date.getTime() - Date.now()) / 1000);
+  const units = [['year', 31536000], ['month', 2592000], ['week', 604800], ['day', 86400], ['hour', 3600], ['minute', 60]];
+  const [unit, secondsPerUnit] = units.find(([, size]) => Math.abs(seconds) >= size) || ['second', 1];
+  return new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' }).format(Math.round(seconds / secondsPerUnit), unit);
+}
+
+function getInitials(name) {
+  return String(name || 'Carpool rider')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('');
+}
+
+function loadingSkeletons(count = 2) {
+  return Array.from({ length: count }, () => `
+    <div class="skeleton-card" aria-hidden="true">
+      <div class="skeleton skeleton-wide"></div>
+      <div class="skeleton skeleton-medium"></div>
+      <div class="skeleton skeleton-short"></div>
+    </div>
+  `).join('');
+}
+
+function showToast(message) {
+  let toast = document.querySelector('.app-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.className = 'app-toast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    document.body.append(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add('is-visible');
+  window.clearTimeout(showToast.timer);
+  showToast.timer = window.setTimeout(() => toast.classList.remove('is-visible'), 3200);
+}
+
+function routeVisual(start, destination) {
+  return `
+    <div class="route-visual" aria-label="Route from ${start} to ${destination}">
+      <div class="route-point"><span class="route-marker"></span><small>FROM</small><strong>${start}</strong></div>
+      <span class="route-track" aria-hidden="true"><i></i></span>
+      <div class="route-point"><span class="route-marker destination"></span><small>TO</small><strong>${destination}</strong></div>
+    </div>
+  `;
+}
+
 function setAuthButtons() {
   const user = getUser();
   const loginLink = document.querySelector('[data-auth="login"]');
@@ -86,8 +139,11 @@ async function handleAuthForm(event) {
 
   const payload = Object.fromEntries(new FormData(form).entries());
 
+  const originalLabel = submitButton.textContent;
   submitButton.disabled = true;
-  submitButton.textContent = 'Please wait...';
+  submitButton.classList.add('is-loading');
+  submitButton.setAttribute('aria-busy', 'true');
+  submitButton.textContent = form.dataset.endpoint.endsWith('/login') ? 'Signing in' : 'Creating account';
 
   try {
     const endpoint = form.dataset.endpoint;
@@ -113,8 +169,58 @@ async function handleAuthForm(event) {
     }
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = form.dataset.submitText || 'Submit';
+    submitButton.classList.remove('is-loading');
+    submitButton.removeAttribute('aria-busy');
+    submitButton.textContent = originalLabel || form.dataset.submitText || 'Submit';
   }
+}
+
+function initializePasswordToggles() {
+  document.querySelectorAll('[data-password-toggle]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const input = button.parentElement.querySelector('input');
+      if (!input) return;
+      const isVisible = input.type === 'text';
+      input.type = isVisible ? 'password' : 'text';
+      button.setAttribute('aria-label', isVisible ? 'Show password' : 'Hide password');
+    });
+  });
+}
+
+function updateOfferPreview(form) {
+  const formData = new FormData(form);
+  const start = formData.get('start_location')?.trim() || 'Starting point';
+  const destination = formData.get('destination')?.trim() || 'Destination';
+  const tripDate = formData.get('trip_date');
+  const departureTime = formData.get('departure_time');
+  const seats = Number(formData.get('available_seats') || 1);
+  const vehicle = formData.get('vehicle')?.trim() || 'Add vehicle details';
+  const dateTime = [tripDate ? formatDate(`${tripDate}T00:00:00`) : '', departureTime || '']
+    .filter(Boolean)
+    .join(' · ') || 'Choose a date and time';
+
+  document.querySelector('[data-preview="start"]').textContent = start;
+  document.querySelector('[data-preview="destination"]').textContent = destination;
+  document.querySelector('[data-preview="when"]').textContent = dateTime;
+  document.querySelector('[data-preview="seats"]').textContent = `${seats} ${seats === 1 ? 'seat' : 'seats'} available`;
+  document.querySelector('[data-preview="vehicle"]').textContent = vehicle;
+}
+
+function initializeOfferPreview() {
+  const form = document.querySelector('[data-offer-form]');
+  if (!form) return;
+
+  form.addEventListener('input', () => updateOfferPreview(form));
+  form.addEventListener('change', () => updateOfferPreview(form));
+  document.addEventListener('click', (event) => {
+    const stepButton = event.target.closest('[data-seat-step]');
+    if (!stepButton || !form.contains(stepButton)) return;
+    const seatInput = form.querySelector('[name="available_seats"]');
+    const current = Number(seatInput.value || 1);
+    seatInput.value = Math.min(8, Math.max(1, current + Number(stepButton.dataset.seatStep)));
+    seatInput.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  updateOfferPreview(form);
 }
 
 async function loadDashboard() {
@@ -128,6 +234,10 @@ async function loadDashboard() {
 
   const welcome = document.querySelector('[data-dashboard="welcome"]');
   const userInfo = document.querySelector('[data-dashboard="user"]');
+  const tripsEl = document.getElementById('dashboard-trips');
+  const requestsEl = document.getElementById('dashboard-requests');
+  if (tripsEl) tripsEl.innerHTML = loadingSkeletons(2);
+  if (requestsEl) requestsEl.innerHTML = loadingSkeletons(2);
 
   try {
     const profile = await apiRequest('/auth/me');
@@ -143,26 +253,28 @@ async function loadDashboard() {
       `;
     }
 
+    const dashboardAvatar = document.querySelector('[data-dashboard="avatar"]');
+    if (dashboardAvatar) dashboardAvatar.textContent = getInitials(profile.user.name);
+
     localStorage.setItem('carpool_user', JSON.stringify(profile.user));
     const [trips, requests] = await Promise.all([
       apiRequest('/trips/mine'),
       apiRequest('/requests/my')
     ]);
+    const tripCount = document.querySelector('[data-dashboard-stat="trips"]');
+    const requestCount = document.querySelector('[data-dashboard-stat="requests"]');
+    const pendingCount = document.querySelector('[data-dashboard-stat="pending"]');
+    if (tripCount) tripCount.textContent = trips.length;
+    if (requestCount) requestCount.textContent = requests.length;
+    if (pendingCount) pendingCount.textContent = requests.filter((request) => request.status === 'pending').length;
     const today = new Date().toISOString().slice(0, 10);
-    const upcomingTrips = [
-      ...trips.filter((trip) => trip.status === 'active' && String(trip.trip_date).slice(0, 10) >= today),
-      ...requests
-        .filter((request) => request.status === 'accepted' && String(request.trip_date).slice(0, 10) >= today)
-        .map((request) => ({ ...request, available_seats: null, isBookedRide: true }))
-    ];
-    const tripsEl = document.getElementById('dashboard-trips');
-    const requestsEl = document.getElementById('dashboard-requests');
-
+    const upcomingTrips = trips.filter((trip) => String(trip.trip_date).slice(0, 10) >= today);
     if (tripsEl) {
       tripsEl.innerHTML = upcomingTrips.length
         ? upcomingTrips.map((trip) => `
             <article class="trip-card">
-              <div class="trip-header"><div><p class="trip-route">${trip.start_location} → ${trip.destination}</p><p class="trip-meta">${formatDate(trip.trip_date)} · ${trip.departure_time}${trip.driver_name ? ` · Driver: ${trip.driver_name}` : ''}</p></div><span class="pill">${trip.isBookedRide ? 'Accepted' : `${trip.available_seats} seats left`}</span></div>
+              ${routeVisual(trip.start_location, trip.destination)}
+              <div class="trip-card-footer"><p class="trip-meta">${formatDate(trip.trip_date)} · ${trip.departure_time}</p><span class="pill">${trip.status || 'active'}</span></div>
             </article>
           `).join('')
         : '<div class="empty-state">No upcoming rides posted. Your future rides will appear here.</div>';
@@ -215,7 +327,13 @@ function renderTrips(trips, containerId = 'trip-list', options = {}) {
   if (!listEl) return;
 
   if (!trips.length) {
-    listEl.innerHTML = '<div class="empty-state">No active rides right now. Check back soon.</div>';
+    listEl.innerHTML = `
+      <div class="empty-state trip-empty-state">
+        <svg viewBox="0 0 80 64" fill="none" aria-hidden="true"><path d="M7 47c13-12 20 5 32-4 11-8 20-15 34-8" stroke="#dfc9b6" stroke-width="8" stroke-linecap="round"/><path d="m24 36 4-10c1-3 4-5 7-5h17c4 0 6 2 8 5l5 10 5 2v7H18v-5c0-2 2-4 4-4h2Z" fill="#fb7185"/><circle cx="30" cy="47" r="5" fill="#292321"/><circle cx="55" cy="47" r="5" fill="#292321"/></svg>
+        <strong>No rides match just yet.</strong><span>Try another date or route, or share a ride of your own.</span>
+        <a href="offer-ride.html" class="btn btn-outline">Offer a ride</a>
+      </div>
+    `;
     return;
   }
 
@@ -223,21 +341,18 @@ function renderTrips(trips, containerId = 'trip-list', options = {}) {
 
   listEl.innerHTML = trips.map((trip) => `
     <article class="trip-card">
+      ${routeVisual(trip.start_location, trip.destination)}
       <div class="trip-header">
-        <div>
-          <p class="trip-route">${trip.start_location} → ${trip.destination}</p>
-          <p class="trip-meta">Driver: ${trip.driver_name || 'Unknown'} · ${trip.available_seats} seats left</p>
-        </div>
+        <div class="trip-driver"><span class="driver-avatar">${getInitials(trip.driver_name)}</span><span><strong>${trip.driver_name || 'Carpool driver'}</strong><small>${trip.vehicle || 'Vehicle details available'}</small></span></div>
         <span class="pill">${trip.status || 'active'}</span>
       </div>
       <div class="trip-body">
-        <p><strong>Date:</strong> ${formatDate(trip.trip_date)}</p>
-        <p><strong>Departure:</strong> ${trip.departure_time}</p>
-        <p><strong>Vehicle:</strong> ${trip.vehicle || 'Not specified'}</p>
-        <p><strong>Notes:</strong> ${trip.notes || 'No extra notes'}</p>
+        <p><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><strong>Date:</strong> ${formatDate(trip.trip_date)} <span aria-hidden="true">·</span> ${trip.departure_time}</p>
+        <p><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 19v-1a6 6 0 0 1 12 0v1M16 5a3 3 0 0 1 0 6m2 2a5 5 0 0 1 3 4.6v1"/></svg><strong>Seats:</strong> ${trip.available_seats} available</p>
+        ${trip.notes ? `<p><strong>Note:</strong> ${trip.notes}</p>` : ''}
       </div>
       <div class="trip-actions">
-        <a class="btn btn-outline" href="ride-details.html?trip=${trip.id}">View details</a>
+        <a class="btn btn-outline" href="ride-details.html?trip=${trip.id}">View details <span aria-hidden="true">→</span></a>
         ${Number(currentUser?.id) !== Number(trip.driver_id) ? `<a class="btn btn-primary" href="ride-details.html?trip=${trip.id}">Request ride</a>` : ''}
       </div>
     </article>
@@ -248,6 +363,7 @@ async function loadHomeTrips() {
   const homeTripsEl = document.getElementById('home-trips');
   if (!homeTripsEl) return;
 
+  homeTripsEl.innerHTML = loadingSkeletons(3);
   try {
     const trips = await apiRequest('/trips?status=active');
     renderTrips(trips.slice(0, 6), 'home-trips');
@@ -260,6 +376,7 @@ async function loadTrips() {
   const filterForm = document.querySelector('[data-trip-filter]');
   const listEl = document.getElementById('trip-list');
   if (!listEl) return;
+  listEl.innerHTML = loadingSkeletons(3);
 
   const params = {};
   if (filterForm) {
@@ -277,7 +394,8 @@ async function loadTrips() {
   const query = new URLSearchParams(params).toString();
   try {
     const trips = await apiRequest(`/trips${query ? `?${query}` : ''}`);
-    renderTrips(trips);
+    const minimumSeats = Number(filterForm?.elements.min_seats?.value || 0);
+    renderTrips(trips.filter((trip) => Number(trip.available_seats) >= minimumSeats));
   } catch (error) {
     listEl.innerHTML = `<div class="empty-state">${error.message}</div>`;
   }
@@ -293,12 +411,14 @@ async function handleTripFilter(event) {
     trip_date: formData.get('trip_date'),
     sort: formData.get('sort')
   };
+  const minimumSeats = Number(formData.get('min_seats') || 0);
 
   const query = new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([, value]) => value))).toString();
   const listEl = document.getElementById('trip-list');
+  if (listEl) listEl.innerHTML = loadingSkeletons(3);
   try {
     const trips = await apiRequest(`/trips${query ? `?${query}` : ''}`);
-    renderTrips(trips);
+    renderTrips(trips.filter((trip) => Number(trip.available_seats) >= minimumSeats));
   } catch (error) {
     if (listEl) listEl.innerHTML = `<div class="empty-state">${error.message}</div>`;
   }
@@ -314,7 +434,9 @@ async function handleCreateTrip(event) {
   const payload = Object.fromEntries(new FormData(form).entries());
 
   submitButton.disabled = true;
-  submitButton.textContent = 'Posting...';
+  submitButton.classList.add('is-loading');
+  submitButton.setAttribute('aria-busy', 'true');
+  submitButton.textContent = 'Posting ride';
 
   try {
     const trip = await apiRequest('/trips', {
@@ -330,7 +452,10 @@ async function handleCreateTrip(event) {
       messageEl.classList.remove('error');
       messageEl.classList.add('success');
     }
+    form.classList.add('is-success');
+    window.setTimeout(() => form.classList.remove('is-success'), 900);
     form.reset();
+    updateOfferPreview(form);
     await renderOfferRidePage();
   } catch (error) {
     if (messageEl) {
@@ -340,6 +465,8 @@ async function handleCreateTrip(event) {
     }
   } finally {
     submitButton.disabled = false;
+    submitButton.classList.remove('is-loading');
+    submitButton.removeAttribute('aria-busy');
     submitButton.textContent = 'Post ride';
   }
 }
@@ -351,6 +478,7 @@ async function loadTripDetails() {
   const requestForm = document.getElementById('request-ride-form');
 
   if (!tripId || !detailsEl) return;
+  detailsEl.innerHTML = loadingSkeletons(1);
 
   try {
     const trips = await apiRequest('/trips?status=active');
@@ -361,27 +489,47 @@ async function loadTripDetails() {
       return;
     }
 
+    const currentUser = getUser();
+    let existingRequest = null;
+    if (getToken()) {
+      try {
+        const requests = await apiRequest('/requests/my');
+        existingRequest = requests.find((request) => String(request.trip_id) === String(trip.id));
+      } catch (error) {
+        existingRequest = null;
+      }
+    }
+
     detailsEl.innerHTML = `
       <div class="trip-detail-card">
-        <p class="trip-route">${trip.start_location} → ${trip.destination}</p>
-        <p><strong>Driver:</strong> ${trip.driver_name}</p>
-        <p><strong>Driver phone:</strong> ${trip.driver_phone || 'Not provided'}</p>
-        <p><strong>Date:</strong> ${formatDate(trip.trip_date)}</p>
-        <p><strong>Departure time:</strong> ${trip.departure_time}</p>
-        <p><strong>Available seats:</strong> ${trip.available_seats}</p>
-        <p><strong>Vehicle:</strong> ${trip.vehicle || 'Not specified'}</p>
-        <p><strong>Notes:</strong> ${trip.notes || 'No extra notes'}</p>
+        <p class="detail-route-heading">THE ROUTE</p>
+        ${routeVisual(trip.start_location, trip.destination)}
+        <div class="driver-profile"><span class="driver-avatar">${getInitials(trip.driver_name)}</span><div><strong>${trip.driver_name || 'Carpool driver'}</strong><small>Driver${trip.driver_phone ? ` · <a href="tel:${trip.driver_phone}">${trip.driver_phone}</a>` : ''}</small></div><span class="pill">${trip.status || 'active'}</span></div>
+        <div class="detail-data-grid"><div class="detail-data"><small>DATE</small><strong>${formatDate(trip.trip_date)}</strong></div><div class="detail-data"><small>DEPARTURE</small><strong>${trip.departure_time}</strong></div><div class="detail-data"><small>SEATS LEFT</small><strong>${trip.available_seats} available</strong></div><div class="detail-data"><small>VEHICLE</small><strong>${trip.vehicle || 'Not specified'}</strong></div></div>
+        <blockquote class="route-notes"><strong>A note from the driver</strong>${trip.notes || 'No extra details from the driver.'}</blockquote>
       </div>
     `;
 
     if (requestForm) {
       requestForm.dataset.tripId = trip.id;
+      const requestPanel = requestForm.closest('.sticky-request');
+      if (Number(currentUser?.id) === Number(trip.driver_id)) {
+        if (requestPanel) requestPanel.hidden = true;
+      } else if (existingRequest) {
+        requestForm.hidden = true;
+        requestForm.insertAdjacentHTML('beforebegin', `<div class="request-status-note"><span class="pill">${existingRequest.status}</span><p>You already requested this ride. The driver will update your request here.</p></div>`);
+      }
       requestForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (!ensureLoggedIn()) return;
         const submitButton = requestForm.querySelector('button[type="submit"]');
         const message = requestForm.querySelector('textarea[name="message"]')?.value || '';
-        if (submitButton) submitButton.disabled = true;
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.classList.add('is-loading');
+          submitButton.setAttribute('aria-busy', 'true');
+          submitButton.textContent = 'Sending request';
+        }
         try {
           await apiRequest('/requests', {
             method: 'POST',
@@ -402,7 +550,12 @@ async function loadTripDetails() {
             messageEl.classList.add('error');
           }
         } finally {
-          if (submitButton) submitButton.disabled = false;
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.classList.remove('is-loading');
+            submitButton.removeAttribute('aria-busy');
+            submitButton.innerHTML = 'Send request <span aria-hidden="true">→</span>';
+          }
         }
       });
     }
@@ -418,6 +571,8 @@ async function renderRequestsPage() {
   const driverRequestsEl = document.getElementById('driver-requests');
 
   if (!myRequestsEl || !driverRequestsEl) return;
+  myRequestsEl.innerHTML = loadingSkeletons(2);
+  driverRequestsEl.innerHTML = loadingSkeletons(2);
 
   try {
     const [myRequests, trips] = await Promise.all([
@@ -428,11 +583,10 @@ async function renderRequestsPage() {
     myRequestsEl.innerHTML = myRequests.length
       ? myRequests.map((request) => `
           <div class="request-card">
-            <p><strong>Route:</strong> ${request.start_location} → ${request.destination}</p>
-            <p><strong>Date:</strong> ${formatDate(request.trip_date)} · ${request.departure_time}</p>
+            ${routeVisual(request.start_location, request.destination)}
+            <div class="request-card-meta"><p>${formatDate(request.trip_date)} · ${request.departure_time}</p><span class="pill">${request.status}</span></div>
             <p><strong>Driver:</strong> ${request.driver_name}</p>
-            <p><strong>Status:</strong> <span class="pill">${request.status}</span></p>
-            <p><strong>Message:</strong> ${request.message || 'No message'}</p>
+            <blockquote class="request-quote">${request.message || 'No message included.'}</blockquote>
             ${request.status === 'pending' ? `<button class="btn btn-outline" data-cancel-request="${request.id}">Cancel request</button>` : ''}
           </div>
         `).join('')
@@ -460,12 +614,11 @@ async function renderRequestsPage() {
     driverRequestsEl.innerHTML = flatRequests.length
       ? flatRequests.map((request) => `
           <div class="request-card">
-            <p><strong>Trip:</strong> ${request.tripTitle}</p>
-            <p><strong>Rider:</strong> ${request.rider_name}</p>
-            <p><strong>Status:</strong> <span class="pill">${request.status}</span></p>
-            <p><strong>Message:</strong> ${request.message || 'No message'}</p>
+            <p class="trip-meta">Trip · ${request.tripTitle}</p>
+            <div class="rider-profile"><span class="rider-avatar">${getInitials(request.rider_name)}</span><span><strong>${request.rider_name}</strong><small>${request.created_at ? relativeTime(request.created_at) : 'Ride request'}</small></span><span class="pill">${request.status}</span></div>
+            <blockquote class="request-quote">${request.message || 'No message included.'}</blockquote>
             ${request.status === 'pending' ? `<div class="trip-actions">
-              ${request.tripStatus === 'active' && request.seatsAvailable > 0 ? `<button class="btn btn-outline" data-request-status="${request.id}" data-status="accepted">Accept</button>` : ''}
+              ${request.tripStatus === 'active' && request.seatsAvailable > 0 ? `<button class="btn btn-success" data-request-status="${request.id}" data-status="accepted">Accept</button>` : ''}
               <button class="btn btn-danger" data-request-status="${request.id}" data-status="rejected">Reject</button>
             </div>` : ''}
           </div>
@@ -485,6 +638,8 @@ async function renderOfferRidePage() {
   const rideRequestsEl = document.getElementById('ride-requests');
 
   if (!myTripsEl || !rideRequestsEl) return;
+  myTripsEl.innerHTML = loadingSkeletons(2);
+  rideRequestsEl.innerHTML = loadingSkeletons(1);
 
   try {
     const trips = await apiRequest('/trips/mine');
@@ -492,9 +647,9 @@ async function renderOfferRidePage() {
     myTripsEl.innerHTML = trips.length
       ? trips.map((trip) => `
           <article class="trip-card">
+            ${routeVisual(trip.start_location, trip.destination)}
             <div class="trip-header">
               <div>
-                <p class="trip-route">${trip.start_location} → ${trip.destination}</p>
                 <p class="trip-meta">${formatDate(trip.trip_date)} · ${trip.departure_time}</p>
               </div>
               <span class="pill">${trip.status || 'active'}</span>
@@ -545,11 +700,11 @@ async function renderOfferRidePage() {
         ${requests.length
           ? requests.map((request) => `
               <div class="request-item">
-                <p><strong>Rider:</strong> ${request.rider_name}</p>
+                <div class="rider-profile"><span class="rider-avatar">${getInitials(request.rider_name)}</span><span><strong>${request.rider_name}</strong><small>${request.created_at ? relativeTime(request.created_at) : 'Ride request'}</small></span></div>
                 <p><strong>Status:</strong> <span class="pill">${request.status}</span></p>
-                <p><strong>Message:</strong> ${request.message || 'No message'}</p>
+                <blockquote class="request-quote">${request.message || 'No message included.'}</blockquote>
                 ${request.status === 'pending' ? `<div class="trip-actions">
-                  ${trip.status === 'active' && trip.available_seats > 0 ? `<button class="btn btn-outline" data-request-status="${request.id}" data-status="accepted">Accept</button>` : ''}
+                  ${trip.status === 'active' && trip.available_seats > 0 ? `<button class="btn btn-success" data-request-status="${request.id}" data-status="accepted">Accept</button>` : ''}
                   <button class="btn btn-danger" data-request-status="${request.id}" data-status="rejected">Reject</button>
                 </div>` : ''}
               </div>
@@ -567,6 +722,7 @@ async function renderOfferRidePage() {
             method: 'PATCH',
             body: JSON.stringify({ status })
           });
+          showToast(status === 'accepted' ? 'Ride request accepted.' : 'Ride request declined.');
           await renderOfferRidePage();
         } catch (error) {
           window.alert(error.message);
@@ -599,6 +755,7 @@ async function updateRideRequest(requestId, status) {
       method: 'PATCH',
       body: JSON.stringify({ status })
     });
+    showToast(status === 'accepted' ? 'Ride request accepted.' : 'Ride request declined.');
     await renderRequestsPage();
     await loadDashboard();
   } catch (error) {
@@ -609,6 +766,7 @@ async function updateRideRequest(requestId, status) {
 async function cancelRideRequest(requestId) {
   try {
     await apiRequest(`/requests/${requestId}/cancel`, { method: 'PATCH' });
+    showToast('Ride request cancelled.');
     await renderRequestsPage();
     await loadDashboard();
   } catch (error) {
@@ -656,6 +814,7 @@ function initializeRidePages() {
   }
 
   if (page === 'offer-ride') {
+    initializeOfferPreview();
     const offerForm = document.querySelector('[data-offer-form]');
     if (offerForm) {
       offerForm.addEventListener('submit', handleCreateTrip);
@@ -699,6 +858,7 @@ function initializeRidePages() {
 function initializeAuthPage() {
   setAuthButtons();
   bindLogoutButton();
+  initializePasswordToggles();
 
   const authForm = document.querySelector('[data-auth-form]');
   if (authForm) {

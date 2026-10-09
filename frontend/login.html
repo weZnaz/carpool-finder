@@ -4,12 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login | Carpool Finder</title>
+  <meta name="theme-color" content="#fefcf9" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
+<body data-page="login">
   <header class="navbar">
     <div class="container nav-inner">
-      <a href="index.html" class="logo">🚗 Carpool Finder</a>
+      <a href="index.html" class="logo"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 1.3-4.2A2.5 2.5 0 0 1 8.7 7h6.6a2.5 2.5 0 0 1 2.4 1.8L19 13v5h-2v-2H7v2H5v-5Z"/><path d="M5 13h14M8 16h.01M16 16h.01"/></svg></span>Carpool Finder</a>
       <nav>
         <a href="index.html">Home</a>
         <a href="rides.html">Find Ride</a>
@@ -21,10 +25,12 @@
     </div>
   </header>
 
-  <main class="container auth-page">
-    <div class="auth-card">
-      <h1>Welcome back</h1>
-      <p class="auth-subtitle">Sign in to manage your rides</p>
+  <main class="auth-page auth-screen">
+    <div class="container auth-layout">
+      <section class="auth-card auth-form-panel">
+      <p class="eyebrow">Good to see you again</p>
+      <h1>Welcome back.</h1>
+      <p class="auth-subtitle">Sign in to pick up where your next ride begins.</p>
 
       <form data-auth-form data-endpoint="/auth/login" data-submit-text="Login">
         <div class="form-group">
@@ -32,9 +38,9 @@
           <input id="email" name="email" type="email" placeholder="you@example.com" required />
         </div>
 
-        <div class="form-group">
+          <div class="form-group">
           <label for="password">Password</label>
-          <input id="password" name="password" type="password" placeholder="Enter your password" required />
+          <div class="password-field"><input id="password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required /><button type="button" class="password-toggle" data-password-toggle aria-label="Show password"><svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.3-6 9.5-6 9.5 6 9.5 6-3.3 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div>
         </div>
 
         <button type="submit" class="btn btn-primary btn-block">Login</button>
@@ -44,6 +50,8 @@
       <p class="auth-switch">
         New here? <a href="register.html">Create an account</a>
       </p>
+      </section>
+      <aside class="auth-art"><div class="auth-art-sun"></div><svg viewBox="0 0 420 310" role="img" aria-label="A car following a sunny road"><path d="M28 243c83-80 124 34 197-26s96-69 168-21" fill="none" stroke="#dfc9b6" stroke-width="36" stroke-linecap="round"/><path d="M28 243c83-80 124 34 197-26s96-69 168-21" fill="none" stroke="#fffaf3" stroke-width="29" stroke-linecap="round" stroke-dasharray="3 10"/><g transform="translate(130 123)"><path d="m12 80 15-38c5-12 16-20 30-21l72-4c17-1 30 7 38 22l20 39 17 7c8 3 12 9 12 17v10H0V98c0-8 5-15 13-17l-1-1Z" fill="#fb7185"/><path d="m40 47 63-3 2 39H25l15-36Zm76-4h9c13 0 22 6 29 18l13 22h-49l-2-40Z" fill="#fff0df"/><circle cx="48" cy="117" r="18" fill="#292321"/><circle cx="164" cy="117" r="18" fill="#292321"/><circle cx="48" cy="117" r="7" fill="#f5e7dc"/><circle cx="164" cy="117" r="7" fill="#f5e7dc"/></g></svg><div class="auth-art-copy"><p class="eyebrow">Same way. Better together.</p><h2>Make the miles<br />mean a little more.</h2><p>Find people traveling your way and turn the daily drive into shared time.</p></div></aside>
     </div>
   </main>
 

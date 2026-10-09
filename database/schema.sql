@@ -1,11 +1,4 @@
--- database/schema.sql
--- Run this file to set up the Carpool Finder database
 
-CREATE DATABASE IF NOT EXISTS carpool_finder
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-USE carpool_finder;
 
 -- ---------- USERS ----------
 CREATE TABLE IF NOT EXISTS users (

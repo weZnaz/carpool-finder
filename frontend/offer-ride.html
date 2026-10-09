@@ -4,16 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Offer a Ride | Carpool Finder</title>
+  <meta name="theme-color" content="#fefcf9" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body data-page="offer-ride">
   <header class="navbar">
     <div class="container nav-inner">
-      <a href="index.html" class="logo">🚗 Carpool Finder</a>
+      <a href="index.html" class="logo"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 1.3-4.2A2.5 2.5 0 0 1 8.7 7h6.6a2.5 2.5 0 0 1 2.4 1.8L19 13v5h-2v-2H7v2H5v-5Z"/><path d="M5 13h14M8 16h.01M16 16h.01"/></svg></span>Carpool Finder</a>
       <nav>
         <a href="index.html">Home</a>
         <a href="rides.html">Find Ride</a>
-        <a href="offer-ride.html">Offer Ride</a>
+        <a href="offer-ride.html" aria-current="page">Offer Ride</a>
         <a href="requests.html">Requests</a>
         <a href="dashboard.html">Dashboard</a>
       </nav>
@@ -24,23 +28,23 @@
     </div>
   </header>
 
-  <main class="container auth-page">
-    <div class="auth-card wide-card">
-      <h1>Offer a ride</h1>
-      <p class="auth-subtitle">Share your available seats and help someone travel.</p>
-
+  <main class="container page-shell offer-page">
+    <div class="offer-heading"><p class="eyebrow">Make room for one more</p><h1>Offer a ride.</h1><p>Share the route you already travel and split the journey.</p></div>
+    <div class="offer-layout">
+      <section class="auth-card wide-card offer-form-card">
       <form data-offer-form>
         <div class="two-column">
           <div class="form-group">
             <label for="start_location">Starting location</label>
-            <input id="start_location" name="start_location" type="text" placeholder="Downtown" required />
+            <input id="start_location" name="start_location" type="text" placeholder="Downtown" list="location-suggestions" autocomplete="street-address" required />
           </div>
 
           <div class="form-group">
             <label for="destination">Destination</label>
-            <input id="destination" name="destination" type="text" placeholder="University" required />
+            <input id="destination" name="destination" type="text" placeholder="University" list="location-suggestions" autocomplete="street-address" required />
           </div>
         </div>
+        <datalist id="location-suggestions"><option value="Downtown"></option><option value="Central Station"></option><option value="University District"></option><option value="Airport"></option></datalist>
 
         <div class="two-column">
           <div class="form-group">
@@ -57,7 +61,7 @@
         <div class="two-column">
           <div class="form-group">
             <label for="available_seats">Available seats</label>
-            <input id="available_seats" name="available_seats" type="number" min="1" value="1" required />
+            <div class="stepper"><button type="button" data-seat-step="-1" aria-label="Remove a seat">−</button><input id="available_seats" name="available_seats" type="number" min="1" max="8" value="1" required /><button type="button" data-seat-step="1" aria-label="Add a seat">+</button></div>
           </div>
 
           <div class="form-group">
@@ -74,6 +78,14 @@
         <button type="submit" class="btn btn-primary btn-block">Post ride</button>
         <p class="form-message" data-message></p>
       </form>
+      </section>
+      <aside class="ride-preview" aria-live="polite">
+        <div class="preview-topline"><span class="preview-dot"></span> YOUR RIDE PREVIEW</div>
+        <div class="preview-route"><span data-preview="start">Starting point</span><span class="preview-route-line"><i></i></span><span data-preview="destination">Destination</span></div>
+        <div class="preview-divider"></div>
+        <div class="preview-details"><p><span class="preview-icon">◷</span><span><small>When</small><strong data-preview="when">Choose a date and time</strong></span></p><p><span class="preview-icon preview-seat-icon">◇</span><span><small>Seats</small><strong data-preview="seats">1 seat available</strong></span></p><p><span class="preview-icon preview-car-icon">↗</span><span><small>Vehicle</small><strong data-preview="vehicle">Add vehicle details</strong></span></p></div>
+        <p class="preview-note">A clear trip description helps riders know if your journey is right for them.</p>
+      </aside>
     </div>
   </main>
 

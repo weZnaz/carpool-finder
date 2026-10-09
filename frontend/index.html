@@ -4,14 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Carpool Finder — Share your ride</title>
+  <meta name="theme-color" content="#fefcf9" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body data-page="home">
   <header class="navbar">
     <div class="container nav-inner">
-      <a href="index.html" class="logo">🚗 Carpool Finder</a>
+      <a href="index.html" class="logo"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 1.3-4.2A2.5 2.5 0 0 1 8.7 7h6.6a2.5 2.5 0 0 1 2.4 1.8L19 13v5h-2v-2H7v2H5v-5Z"/><path d="M5 13h14M8 16h.01M16 16h.01"/></svg></span>Carpool Finder</a>
       <nav>
-        <a href="index.html">Home</a>
+        <a href="index.html" aria-current="page">Home</a>
         <a href="rides.html">Find Ride</a>
         <a href="offer-ride.html">Offer Ride</a>
         <a href="dashboard.html">Dashboard</a>
@@ -24,61 +28,78 @@
   </header>
 
   <main>
-    <section class="hero">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-mesh" aria-hidden="true"></div>
+      <div class="container hero-layout">
+        <div class="hero-copy">
+          <span class="eyebrow hero-badge"><span class="status-dot"></span> A better way to get there</span>
+          <h1 id="hero-title" class="hero-title">Commutes feel<br /><span>lighter together.</span></h1>
+          <p class="tagline">Find a seat or share yours. A brighter way through the everyday.</p>
+          <div class="hero-buttons">
+            <a href="rides.html" class="btn btn-primary btn-lg">Find your ride <span aria-hidden="true">→</span></a>
+            <a href="offer-ride.html" class="btn btn-outline btn-lg">Share a seat</a>
+          </div>
+          <div class="hero-proof"><div class="avatar-stack" aria-hidden="true"><span>AM</span><span>JL</span><span>SK</span><span>+</span></div><p><strong>Good journeys are shared.</strong><br />Join your local commute community.</p></div>
+        </div>
+        <div class="hero-visual" aria-label="Illustration of a car on a winding road at sunrise">
+          <div class="sun-disc"></div>
+          <div class="visual-label visual-label-top"><span class="label-icon">↗</span><span><strong>One less car</strong><small>One better commute</small></span></div>
+          <svg class="hero-illustration" viewBox="0 0 620 460" role="img" aria-labelledby="car-title">
+            <title id="car-title">A coral car following a winding route through a sunny landscape</title>
+            <path class="landscape-line" d="M22 334c71-62 122-32 180 7 56 37 91 41 146-7 58-50 122-77 250-17"/>
+            <path class="road-shadow" d="M40 397c78-35 98-88 171-78 75 10 61 69 149 66 92-3 109-98 223-107"/>
+            <path class="road-line" d="M40 397c78-35 98-88 171-78 75 10 61 69 149 66 92-3 109-98 223-107"/>
+            <path class="route-dash" d="M40 397c78-35 98-88 171-78 75 10 61 69 149 66 92-3 109-98 223-107"/>
+            <g class="hero-car">
+              <ellipse cx="295" cy="317" rx="113" ry="18" fill="#9b4d3f" opacity=".15"/>
+              <path d="m202 289 15-36c7-17 21-27 40-29l76-5c22-1 40 10 51 28l23 39 25 9c10 4 16 13 16 24v13H176v-20c0-11 8-20 18-23l8 0Z" fill="#fb7185"/>
+              <path d="m235 253 72-4 4 42H219l16-38Zm87-5 10-1c17-1 30 7 39 22l13 22h-59l-3-43Z" fill="#fbe5d8"/>
+              <path d="M192 300h235" stroke="#e85f72" stroke-width="5"/>
+              <path d="M186 312h35m178 0h32" stroke="#ffce8a" stroke-width="8" stroke-linecap="round"/>
+              <circle cx="239" cy="330" r="22" fill="#292321"/><circle cx="239" cy="330" r="9" fill="#eee4dc"/>
+              <circle cx="378" cy="330" r="22" fill="#292321"/><circle cx="378" cy="330" r="9" fill="#eee4dc"/>
+              <path d="M180 325h-9m276 0h-9" stroke="#292321" stroke-width="7" stroke-linecap="round"/>
+            </g>
+            <g class="floating-spark" fill="#f59e0b"><circle cx="118" cy="178" r="5"/><circle cx="499" cy="224" r="4"/><path d="M472 111v16m-8-8h16" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/></g>
+            <g fill="#0f766e"><circle cx="520" cy="333" r="6"/><circle cx="537" cy="326" r="9"/><circle cx="557" cy="337" r="5"/><path d="M539 324v-41" stroke="#0f766e" stroke-width="4" stroke-linecap="round"/></g>
+          </svg>
+          <div class="visual-label visual-label-bottom"><span class="label-icon teal-icon">⌁</span><span><strong>Same direction?</strong><small>Make it a shared ride.</small></span></div>
+        </div>
+      </div>
+      <div class="container stats-row" aria-label="Carpool Finder community stats">
+        <div><strong>10K<span>+</span></strong><small>rides shared</small></div>
+        <div><strong>5K<span>+</span></strong><small>commuters connected</small></div>
+        <div><strong>98<span>%</span></strong><small>would ride together again</small></div>
+        <p>Better trips begin with a little room.</p>
+      </div>
+    </section>
+
+    <section class="section-block features-section" aria-labelledby="features-title">
       <div class="container">
-        <h1>Carpool Finder</h1>
-        <p class="tagline">
-          Share your ride.<br />
-          Save money.<br />
-          Travel together.
-        </p>
-        <div class="hero-buttons">
-          <a href="rides.html" class="btn btn-primary btn-lg">Find a Ride</a>
-          <a href="offer-ride.html" class="btn btn-outline btn-lg">Offer a Ride</a>
+        <div class="section-heading section-heading-centered"><p class="eyebrow">A smoother everyday</p><h2 id="features-title">Small changes. Better journeys.</h2><p>Make your daily route work a little harder for everyone.</p></div>
+        <div class="features feature-grid">
+          <article class="feature-card"><span class="feature-icon coral-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m15.5 15.5 4 4"/></svg></span><h3>Find your fit</h3><p>Search real trips by route and date, then choose the ride that fits your day.</p></article>
+          <article class="feature-card"><span class="feature-icon teal-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 15.5v-3l1.5-5h13l1.5 5v3M4 12.5h16M7 15.5v2m10-2v2"/><circle cx="7" cy="13.5" r=".6"/><circle cx="17" cy="13.5" r=".6"/></svg></span><h3>Share the drive</h3><p>Offer your open seats and make a familiar trip more affordable.</p></article>
+          <article class="feature-card"><span class="feature-icon amber-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18m5-13.5c0-1.4-1.8-2.5-4.5-2.5S8 6.1 8 7.5 9.8 10 12.5 10s4.5 1.1 4.5 2.5-1.8 2.5-4.5 2.5S8 13.9 8 12.5"/></svg></span><h3>Spend less</h3><p>Split the cost of the road and save a little for what comes next.</p></article>
+          <article class="feature-card"><span class="feature-icon rose-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M8 12.5 10.5 15 16 9.5M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"/></svg></span><h3>Arrive together</h3><p>Make the trip part of the day, with good company along the way.</p></article>
         </div>
       </div>
     </section>
 
-    <section class="features container">
-      <div class="feature-card">
-        <div class="icon">🔎</div>
-        <h3>Find rides</h3>
-        <p>Search trips between your city and campus.</p>
-      </div>
-      <div class="feature-card">
-        <div class="icon">🚙</div>
-        <h3>Offer rides</h3>
-        <p>Post your trip and share empty seats.</p>
-      </div>
-      <div class="feature-card">
-        <div class="icon">💰</div>
-        <h3>Save money</h3>
-        <p>Split fuel costs with fellow travelers.</p>
-      </div>
-      <div class="feature-card">
-        <div class="icon">🤝</div>
-        <h3>Travel together</h3>
-        <p>Meet new people on every journey.</p>
+    <section class="section-block how-section" aria-labelledby="how-title">
+      <div class="container how-layout"><div class="how-intro"><p class="eyebrow">No complicated detours</p><h2 id="how-title">Three steps to<br /><span>a better ride.</span></h2><p>From finding a route to meeting at the curb, keep the whole thing refreshingly simple.</p><a href="rides.html" class="text-link">Explore available rides <span aria-hidden="true">→</span></a></div>
+        <div class="steps-list"><article class="step-item"><span class="step-number">01</span><div><h3>Choose your route</h3><p>Search by starting point, destination, and the day you need to travel.</p></div></article><article class="step-item"><span class="step-number">02</span><div><h3>Meet your match</h3><p>Compare the trip details and send a quick request to the driver.</p></div></article><article class="step-item"><span class="step-number">03</span><div><h3>Enjoy the ride</h3><p>Confirm the plan, share the journey, and make the road feel shorter.</p></div></article></div>
       </div>
     </section>
 
-    <section class="container featured-section">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Live rides</p>
-          <h2>Active rides near you</h2>
-        </div>
-        <a href="rides.html" class="btn btn-primary">See all rides</a>
-      </div>
-      <div id="home-trips" class="trip-list"></div>
-    </section>
+    <section class="section-block live-section" aria-labelledby="live-title"><div class="container"><div class="section-heading"><div><p class="eyebrow">On the move</p><h2 id="live-title">Rides looking for a co-pilot</h2><p>Fresh trips from your community.</p></div><a href="rides.html" class="text-link">Browse all rides <span aria-hidden="true">→</span></a></div><div id="home-trips" class="trip-list live-trip-grid" aria-live="polite"></div></div></section>
+
+    <section class="section-block notes-section" aria-labelledby="notes-title"><div class="container"><div class="section-heading"><div><p class="eyebrow">Made for the way there</p><h2 id="notes-title">A little more room for good days.</h2></div><p class="section-heading-note">Thoughtful shared rides make everyday travel feel more connected.</p></div><div class="testimonial-grid"><article class="quote-card"><span class="quote-mark">“</span><p>We take the same route every morning. Sharing the drive just made sense from day one.</p><div class="quote-author"><span class="quote-avatar avatar-coral">M</span><span><strong>Morgan</strong><small>Morning commuter</small></span></div></article><article class="quote-card quote-card-featured"><span class="quote-mark">“</span><p>It’s an easier way to get across town, and the ride goes by faster with good company.</p><div class="quote-author"><span class="quote-avatar avatar-teal">J</span><span><strong>Jordan</strong><small>Weekly rider</small></span></div></article><article class="quote-card"><span class="quote-mark">“</span><p>I had a spare seat and found someone headed the same way. Now we plan the route together.</p><div class="quote-author"><span class="quote-avatar avatar-amber">A</span><span><strong>Alex</strong><small>Local driver</small></span></div></article></div></div></section>
+
+    <section class="container final-cta"><div class="cta-orbit orbit-one"></div><div class="cta-orbit orbit-two"></div><p class="eyebrow">Your next trip starts here</p><h2>There's room for<br /><span>one more.</span></h2><p>Find a ride that fits your plans or share a seat on the way.</p><div class="hero-buttons"><a href="rides.html" class="btn btn-light btn-lg">Find a ride <span aria-hidden="true">→</span></a><a href="offer-ride.html" class="btn btn-cta-outline btn-lg">Offer a ride</a></div></section>
   </main>
 
-  <footer class="footer">
-    <div class="container">
-      <p>© 2026 Carpool Finder. Built for learning.</p>
-    </div>
-  </footer>
+  <footer class="footer site-footer"><div class="container footer-grid"><div class="footer-brand"><a href="index.html" class="logo"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 1.3-4.2A2.5 2.5 0 0 1 8.7 7h6.6a2.5 2.5 0 0 1 2.4 1.8L19 13v5h-2v-2H7v2H5v-5Z"/><path d="M5 13h14M8 16h.01M16 16h.01"/></svg></span>Carpool Finder</a><p>Good journeys are shared.</p></div><div class="footer-links"><div><strong>Get moving</strong><a href="rides.html">Find a ride</a><a href="offer-ride.html">Offer a ride</a></div><div><strong>Your account</strong><a href="login.html">Log in</a><a href="register.html">Create account</a></div><div><strong>Stay in touch</strong><a href="mailto:hello@carpoolfinder.example">Contact</a><a href="requests.html">Ride requests</a></div></div><div class="footer-bottom"><span>© 2026 Carpool Finder</span><span>Made for the miles we share.</span></div></div></footer>
 
   <script src="js/auth.js"></script>
 </body>
