@@ -74,8 +74,10 @@ Carpool Finder is a ride-sharing web application that connects drivers with avai
 6. Open `frontend/index.html` in your browser or use VS Code Live Server.
 
 ## 📸 Screenshots
+<img width="1822" height="915" alt="image" src="https://github.com/user-attachments/assets/fb7037a0-1a0b-4d11-bff0-eb97b70d1e17" /><br>
 
-Add screenshots of your application here to showcase its main features.
+<img width="1872" height="905" alt="image" src="https://github.com/user-attachments/assets/e84ebbec-bf77-4501-b368-a91d0671926e" /><br>
+<img width="1837" height="891" alt="image" src="https://github.com/user-attachments/assets/739f4d0a-53c0-4de4-bfdc-2f3cf5a9c71c" />
 
 ## 🗺️ Future Improvements
 
