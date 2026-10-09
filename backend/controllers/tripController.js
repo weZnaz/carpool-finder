@@ -44,17 +44,18 @@ async function getTrips(req, res) {
 }
 
 async function createTrip(req, res) {
-  const { start_location, destination, trip_date, departure_time, available_seats, vehicle, notes } = req.body;
+  const { start_location, destination, trip_date, departure_time, available_seats, fare_per_seat = 0, vehicle, notes } = req.body;
+  const fare = Number(fare_per_seat);
 
-  if (!start_location || !destination || !trip_date || !departure_time || !Number.isInteger(Number(available_seats)) || Number(available_seats) < 1) {
-    return res.status(400).json({ error: 'Start location, destination, trip date, departure time, and available seats are required' });
+  if (!start_location || !destination || !trip_date || !departure_time || !Number.isInteger(Number(available_seats)) || Number(available_seats) < 1 || !Number.isFinite(fare) || fare < 0 || fare > 99999999.99) {
+    return res.status(400).json({ error: 'Trip details, a valid seat count, and a non-negative per-seat fare are required' });
   }
 
   try {
     const [result] = await pool.execute(
-      `INSERT INTO trips (driver_id, start_location, destination, trip_date, departure_time, available_seats, vehicle, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [req.user.id, start_location.trim(), destination.trim(), trip_date, departure_time, Number(available_seats), vehicle || null, notes || null]
+      `INSERT INTO trips (driver_id, start_location, destination, trip_date, departure_time, available_seats, fare_per_seat, vehicle, notes)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [req.user.id, start_location.trim(), destination.trim(), trip_date, departure_time, Number(available_seats), fare, vehicle || null, notes || null]
     );
 
     const [rows] = await pool.query(
@@ -91,6 +92,10 @@ async function updateTrip(req, res) {
       return res.status(400).json({ error: 'Available seats must be a non-negative whole number' });
     }
 
+    if (updates.fare_per_seat !== undefined && (!Number.isFinite(Number(updates.fare_per_seat)) || Number(updates.fare_per_seat) < 0 || Number(updates.fare_per_seat) > 99999999.99)) {
+      return res.status(400).json({ error: 'Per-seat fare must be a valid non-negative amount' });
+    }
+
     if (updates.status !== undefined && !['active', 'completed', 'cancelled'].includes(updates.status)) {
       return res.status(400).json({ error: 'A valid trip status is required' });
     }
@@ -98,10 +103,10 @@ async function updateTrip(req, res) {
     const fields = [];
     const values = [];
 
-    ['start_location', 'destination', 'trip_date', 'departure_time', 'available_seats', 'vehicle', 'notes', 'status'].forEach((field) => {
+    ['start_location', 'destination', 'trip_date', 'departure_time', 'available_seats', 'fare_per_seat', 'vehicle', 'notes', 'status'].forEach((field) => {
       if (updates[field] !== undefined) {
         fields.push(`${field} = ?`);
-        values.push(field === 'available_seats' ? Number(updates[field]) : updates[field]);
+        values.push(['available_seats', 'fare_per_seat'].includes(field) ? Number(updates[field]) : updates[field]);
       }
     });
 

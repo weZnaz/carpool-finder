@@ -1,6 +1,7 @@
 const API_BASE_URL = window.location.protocol === 'file:'
   ? 'http://localhost:3000/api'
   : `${window.location.origin}/api`;
+const chatRefreshTimers = new Map();
 
 function getToken() {
   return localStorage.getItem('carpool_token');
@@ -54,6 +55,22 @@ function formatDate(value) {
   return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+function formatFare(value) {
+  const fare = Number(value);
+  if (!Number.isFinite(fare) || fare < 0) return '৳0';
+  return `৳${fare.toLocaleString('en-BD', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[character]);
+}
+
 function relativeTime(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return 'Sent recently';
@@ -95,6 +112,97 @@ function showToast(message) {
   toast.classList.add('is-visible');
   window.clearTimeout(showToast.timer);
   showToast.timer = window.setTimeout(() => toast.classList.remove('is-visible'), 3200);
+}
+
+function chatMarkup(requestId) {
+  return `
+    <div class="conversation-wrap">
+      <button type="button" class="btn btn-outline chat-toggle" data-open-chat="${requestId}" aria-expanded="false">Message <span aria-hidden="true">⌄</span></button>
+      <section class="chat-panel" data-chat-panel="${requestId}" hidden>
+        <div class="chat-messages" data-chat-messages="${requestId}" aria-live="polite"></div>
+        <form class="chat-compose" data-chat-form="${requestId}">
+          <label class="sr-only" for="chat-message-${requestId}">Write a message</label>
+          <textarea id="chat-message-${requestId}" name="message" rows="2" maxlength="1000" placeholder="Write a message..." required></textarea>
+          <button class="btn btn-primary" type="submit">Send</button>
+        </form>
+      </section>
+    </div>
+  `;
+}
+
+function stopChatRefresh() {
+  chatRefreshTimers.forEach((timer) => window.clearInterval(timer));
+  chatRefreshTimers.clear();
+}
+
+async function loadConversation(requestId) {
+  const messagesEl = document.querySelector(`[data-chat-messages="${requestId}"]`);
+  if (!messagesEl) return;
+  if (!messagesEl.dataset.loaded) messagesEl.innerHTML = loadingSkeletons(1);
+
+  try {
+    const messages = await apiRequest(`/requests/${requestId}/messages`);
+    const currentUserId = Number(getUser()?.id);
+    messagesEl.innerHTML = messages.length
+      ? messages.map((message) => `
+          <article class="chat-message ${Number(message.sender_id) === currentUserId ? 'chat-message-mine' : ''}">
+            <div class="chat-message-meta"><strong>${escapeHtml(message.sender_name)}</strong><time datetime="${escapeHtml(message.created_at)}">${escapeHtml(relativeTime(message.created_at))}</time></div>
+            <p>${escapeHtml(message.message)}</p>
+          </article>
+        `).join('')
+      : '<p class="chat-empty">No messages yet. Start the conversation.</p>';
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    messagesEl.dataset.loaded = 'true';
+  } catch (error) {
+    messagesEl.innerHTML = `<p class="chat-error">${escapeHtml(error.message)}</p>`;
+  }
+}
+
+function initializeChatControls() {
+  document.addEventListener('click', async (event) => {
+    const toggle = event.target.closest('[data-open-chat]');
+    if (!toggle) return;
+    const requestId = toggle.dataset.openChat;
+    const panel = document.querySelector(`[data-chat-panel="${requestId}"]`);
+    if (!panel) return;
+    panel.hidden = !panel.hidden;
+    toggle.setAttribute('aria-expanded', String(!panel.hidden));
+    if (panel.hidden) {
+      window.clearInterval(chatRefreshTimers.get(requestId));
+      chatRefreshTimers.delete(requestId);
+    } else {
+      await loadConversation(requestId);
+      if (!chatRefreshTimers.has(requestId)) {
+        chatRefreshTimers.set(requestId, window.setInterval(() => loadConversation(requestId), 5000));
+      }
+    }
+  });
+
+  document.addEventListener('submit', async (event) => {
+    const form = event.target.closest('[data-chat-form]');
+    if (!form) return;
+    event.preventDefault();
+    const requestId = form.dataset.chatForm;
+    const textarea = form.elements.message;
+    const button = form.querySelector('button[type="submit"]');
+    button.disabled = true;
+    button.textContent = 'Sending';
+
+    try {
+      await apiRequest(`/requests/${requestId}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ message: textarea.value })
+      });
+      form.reset();
+      await loadConversation(requestId);
+    } catch (error) {
+      const messagesEl = document.querySelector(`[data-chat-messages="${requestId}"]`);
+      if (messagesEl) messagesEl.insertAdjacentHTML('beforeend', `<p class="chat-error">${escapeHtml(error.message)}</p>`);
+    } finally {
+      button.disabled = false;
+      button.textContent = 'Send';
+    }
+  });
 }
 
 function routeVisual(start, destination) {
@@ -195,6 +303,7 @@ function updateOfferPreview(form) {
   const departureTime = formData.get('departure_time');
   const seats = Number(formData.get('available_seats') || 1);
   const vehicle = formData.get('vehicle')?.trim() || 'Add vehicle details';
+  const fare = formData.get('fare_per_seat');
   const dateTime = [tripDate ? formatDate(`${tripDate}T00:00:00`) : '', departureTime || '']
     .filter(Boolean)
     .join(' · ') || 'Choose a date and time';
@@ -204,6 +313,7 @@ function updateOfferPreview(form) {
   document.querySelector('[data-preview="when"]').textContent = dateTime;
   document.querySelector('[data-preview="seats"]').textContent = `${seats} ${seats === 1 ? 'seat' : 'seats'} available`;
   document.querySelector('[data-preview="vehicle"]').textContent = vehicle;
+  document.querySelector('[data-preview="fare"]').textContent = fare === '' ? 'Enter a fare' : `${formatFare(fare)} per seat`;
 }
 
 function initializeOfferPreview() {
@@ -287,6 +397,7 @@ async function loadDashboard() {
               <p class="trip-route">${request.start_location} → ${request.destination}</p>
               <p><strong>Date:</strong> ${formatDate(request.trip_date)} · ${request.departure_time}</p>
               <p><strong>Driver:</strong> ${request.driver_name}</p>
+              <p class="fare-line"><strong>1 seat fare:</strong> ${formatFare(request.fare_per_seat)}</p>
               <p><strong>Status:</strong> <span class="pill">${request.status}</span></p>
               ${request.status === 'pending' ? `<button class="btn btn-outline" data-cancel-request="${request.id}">Cancel request</button>` : ''}
             </article>
@@ -349,6 +460,7 @@ function renderTrips(trips, containerId = 'trip-list', options = {}) {
       <div class="trip-body">
         <p><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><strong>Date:</strong> ${formatDate(trip.trip_date)} <span aria-hidden="true">·</span> ${trip.departure_time}</p>
         <p><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 19v-1a6 6 0 0 1 12 0v1M16 5a3 3 0 0 1 0 6m2 2a5 5 0 0 1 3 4.6v1"/></svg><strong>Seats:</strong> ${trip.available_seats} available</p>
+        <p class="fare-line"><strong>1 seat fare:</strong> ${formatFare(trip.fare_per_seat)}</p>
         ${trip.notes ? `<p><strong>Note:</strong> ${trip.notes}</p>` : ''}
       </div>
       <div class="trip-actions">
@@ -443,7 +555,8 @@ async function handleCreateTrip(event) {
       method: 'POST',
       body: JSON.stringify({
         ...payload,
-        available_seats: Number(payload.available_seats)
+        available_seats: Number(payload.available_seats),
+        fare_per_seat: Number(payload.fare_per_seat)
       })
     });
 
@@ -505,7 +618,7 @@ async function loadTripDetails() {
         <p class="detail-route-heading">THE ROUTE</p>
         ${routeVisual(trip.start_location, trip.destination)}
         <div class="driver-profile"><span class="driver-avatar">${getInitials(trip.driver_name)}</span><div><strong>${trip.driver_name || 'Carpool driver'}</strong><small>Driver${trip.driver_phone ? ` · <a href="tel:${trip.driver_phone}">${trip.driver_phone}</a>` : ''}</small></div><span class="pill">${trip.status || 'active'}</span></div>
-        <div class="detail-data-grid"><div class="detail-data"><small>DATE</small><strong>${formatDate(trip.trip_date)}</strong></div><div class="detail-data"><small>DEPARTURE</small><strong>${trip.departure_time}</strong></div><div class="detail-data"><small>SEATS LEFT</small><strong>${trip.available_seats} available</strong></div><div class="detail-data"><small>VEHICLE</small><strong>${trip.vehicle || 'Not specified'}</strong></div></div>
+        <div class="detail-data-grid"><div class="detail-data"><small>DATE</small><strong>${formatDate(trip.trip_date)}</strong></div><div class="detail-data"><small>DEPARTURE</small><strong>${trip.departure_time}</strong></div><div class="detail-data"><small>SEATS LEFT</small><strong>${trip.available_seats} available</strong></div><div class="detail-data"><small>VEHICLE</small><strong>${trip.vehicle || 'Not specified'}</strong></div><div class="detail-data fare-data"><small>FARE PER SEAT</small><strong>${formatFare(trip.fare_per_seat)}</strong></div></div>
         <blockquote class="route-notes"><strong>A note from the driver</strong>${trip.notes || 'No extra details from the driver.'}</blockquote>
       </div>
     `;
@@ -517,7 +630,7 @@ async function loadTripDetails() {
         if (requestPanel) requestPanel.hidden = true;
       } else if (existingRequest) {
         requestForm.hidden = true;
-        requestForm.insertAdjacentHTML('beforebegin', `<div class="request-status-note"><span class="pill">${existingRequest.status}</span><p>You already requested this ride. The driver will update your request here.</p></div>`);
+        requestForm.insertAdjacentHTML('beforebegin', `<div class="request-status-note"><span class="pill">${existingRequest.status}</span><p>You already requested this ride. The driver will update your request here.</p>${['pending', 'accepted'].includes(existingRequest.status) ? chatMarkup(existingRequest.id) : ''}</div>`);
       }
       requestForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -566,6 +679,7 @@ async function loadTripDetails() {
 
 async function renderRequestsPage() {
   if (!ensureLoggedIn()) return;
+  stopChatRefresh();
 
   const myRequestsEl = document.getElementById('my-requests');
   const driverRequestsEl = document.getElementById('driver-requests');
@@ -585,8 +699,10 @@ async function renderRequestsPage() {
           <div class="request-card">
             ${routeVisual(request.start_location, request.destination)}
             <div class="request-card-meta"><p>${formatDate(request.trip_date)} · ${request.departure_time}</p><span class="pill">${request.status}</span></div>
+            <p class="fare-line"><strong>1 seat fare:</strong> ${formatFare(request.fare_per_seat)}</p>
             <p><strong>Driver:</strong> ${request.driver_name}</p>
             <blockquote class="request-quote">${request.message || 'No message included.'}</blockquote>
+            ${['pending', 'accepted'].includes(request.status) ? chatMarkup(request.id) : ''}
             ${request.status === 'pending' ? `<button class="btn btn-outline" data-cancel-request="${request.id}">Cancel request</button>` : ''}
           </div>
         `).join('')
@@ -603,6 +719,7 @@ async function renderRequestsPage() {
         return requests.map((request) => ({
           ...request,
           tripTitle: `${trip.start_location} → ${trip.destination}`,
+          fare_per_seat: trip.fare_per_seat,
           tripStatus: trip.status,
           seatsAvailable: trip.available_seats
         }));
@@ -616,7 +733,9 @@ async function renderRequestsPage() {
           <div class="request-card">
             <p class="trip-meta">Trip · ${request.tripTitle}</p>
             <div class="rider-profile"><span class="rider-avatar">${getInitials(request.rider_name)}</span><span><strong>${request.rider_name}</strong><small>${request.created_at ? relativeTime(request.created_at) : 'Ride request'}</small></span><span class="pill">${request.status}</span></div>
+            <p class="fare-line"><strong>1 seat fare:</strong> ${formatFare(request.fare_per_seat)}</p>
             <blockquote class="request-quote">${request.message || 'No message included.'}</blockquote>
+            ${['pending', 'accepted'].includes(request.status) ? chatMarkup(request.id) : ''}
             ${request.status === 'pending' ? `<div class="trip-actions">
               ${request.tripStatus === 'active' && request.seatsAvailable > 0 ? `<button class="btn btn-success" data-request-status="${request.id}" data-status="accepted">Accept</button>` : ''}
               <button class="btn btn-danger" data-request-status="${request.id}" data-status="rejected">Reject</button>
@@ -633,6 +752,7 @@ async function renderRequestsPage() {
 
 async function renderOfferRidePage() {
   if (!ensureLoggedIn()) return;
+  stopChatRefresh();
 
   const myTripsEl = document.getElementById('my-offers');
   const rideRequestsEl = document.getElementById('ride-requests');
@@ -656,6 +776,7 @@ async function renderOfferRidePage() {
             </div>
             <div class="trip-body">
               <p><strong>Seats:</strong> ${trip.available_seats}</p>
+              <p class="fare-line"><strong>1 seat fare:</strong> ${formatFare(trip.fare_per_seat)}</p>
               <p><strong>Vehicle:</strong> ${trip.vehicle || 'Not specified'}</p>
               <p><strong>Notes:</strong> ${trip.notes || 'No extra notes'}</p>
             </div>
@@ -671,6 +792,7 @@ async function renderOfferRidePage() {
                 <label>Date<input name="trip_date" type="date" value="${String(trip.trip_date).slice(0, 10)}" required /></label>
                 <label>Departure<input name="departure_time" type="time" value="${String(trip.departure_time).slice(0, 5)}" required /></label>
                 <label>Seats available<input name="available_seats" type="number" min="0" value="${trip.available_seats}" required /></label>
+                <label>Fare per seat (৳)<input name="fare_per_seat" type="number" min="0" max="99999999.99" step="0.01" value="${trip.fare_per_seat || 0}" required /></label>
                 <label>Vehicle<input name="vehicle" value="${trip.vehicle || ''}" /></label>
                 <label class="edit-notes">Notes<textarea name="notes" rows="2">${trip.notes || ''}</textarea></label>
                 <button class="btn btn-primary" type="submit">Save changes</button>
@@ -702,7 +824,9 @@ async function renderOfferRidePage() {
               <div class="request-item">
                 <div class="rider-profile"><span class="rider-avatar">${getInitials(request.rider_name)}</span><span><strong>${request.rider_name}</strong><small>${request.created_at ? relativeTime(request.created_at) : 'Ride request'}</small></span></div>
                 <p><strong>Status:</strong> <span class="pill">${request.status}</span></p>
+                <p class="fare-line"><strong>1 seat fare:</strong> ${formatFare(trip.fare_per_seat)}</p>
                 <blockquote class="request-quote">${request.message || 'No message included.'}</blockquote>
+                ${['pending', 'accepted'].includes(request.status) ? chatMarkup(request.id) : ''}
                 ${request.status === 'pending' ? `<div class="trip-actions">
                   ${trip.status === 'active' && trip.available_seats > 0 ? `<button class="btn btn-success" data-request-status="${request.id}" data-status="accepted">Accept</button>` : ''}
                   <button class="btn btn-danger" data-request-status="${request.id}" data-status="rejected">Reject</button>
@@ -779,6 +903,7 @@ async function updateOfferedTrip(form) {
   const messageEl = form.querySelector('[data-edit-message]');
   const payload = Object.fromEntries(new FormData(form).entries());
   payload.available_seats = Number(payload.available_seats);
+  payload.fare_per_seat = Number(payload.fare_per_seat);
 
   try {
     await apiRequest(`/trips/${tripId}`, { method: 'PUT', body: JSON.stringify(payload) });
@@ -800,6 +925,10 @@ async function cancelOfferedTrip(tripId) {
 
 function initializeRidePages() {
   const page = document.body.dataset.page;
+
+  if (['ride-details', 'requests', 'offer-ride'].includes(page)) {
+    initializeChatControls();
+  }
 
   if (page === 'home') {
     loadHomeTrips();

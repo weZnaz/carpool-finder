@@ -3,7 +3,7 @@ const { pool } = require('../config/database');
 async function getMyRequests(req, res) {
   try {
     const [rows] = await pool.query(
-      `SELECT r.*, t.start_location, t.destination, t.trip_date, t.departure_time,
+      `SELECT r.*, t.start_location, t.destination, t.trip_date, t.departure_time, t.fare_per_seat,
               driver.name AS driver_name, rider.name AS rider_name
        FROM ride_requests r
        JOIN trips t ON t.id = r.trip_id
@@ -105,6 +105,81 @@ async function getTripRequests(req, res) {
   }
 }
 
+async function getChatRequest(requestId, userId) {
+  const [rows] = await pool.execute(
+    `SELECT r.id, r.status, r.rider_id, t.driver_id
+     FROM ride_requests r
+     JOIN trips t ON t.id = r.trip_id
+     WHERE r.id = ?`,
+    [requestId]
+  );
+
+  if (!rows.length) return { error: 'Ride request not found', status: 404 };
+
+  const rideRequest = rows[0];
+  if (Number(rideRequest.rider_id) !== Number(userId) && Number(rideRequest.driver_id) !== Number(userId)) {
+    return { error: 'You can only message participants in this ride request', status: 403 };
+  }
+
+  if (!['pending', 'accepted'].includes(rideRequest.status)) {
+    return { error: 'Messaging is closed for this ride request', status: 409 };
+  }
+
+  return { rideRequest };
+}
+
+async function getRideMessages(req, res) {
+  try {
+    const access = await getChatRequest(req.params.id, req.user.id);
+    if (access.error) return res.status(access.status).json({ error: access.error });
+
+    const [messages] = await pool.execute(
+      `SELECT m.id, m.request_id, m.sender_id, m.message_text AS message, m.created_at,
+              u.name AS sender_name
+       FROM ride_messages m
+       JOIN users u ON u.id = m.sender_id
+       WHERE m.request_id = ?
+       ORDER BY m.created_at ASC, m.id ASC`,
+      [req.params.id]
+    );
+
+    return res.json(messages);
+  } catch (error) {
+    console.error('Get ride messages error:', error);
+    return res.status(500).json({ error: 'Unable to load this conversation' });
+  }
+}
+
+async function createRideMessage(req, res) {
+  const message = typeof req.body.message === 'string' ? req.body.message.trim() : '';
+  if (!message || message.length > 1000) {
+    return res.status(400).json({ error: 'Message must be between 1 and 1000 characters' });
+  }
+
+  try {
+    const access = await getChatRequest(req.params.id, req.user.id);
+    if (access.error) return res.status(access.status).json({ error: access.error });
+
+    const [result] = await pool.execute(
+      'INSERT INTO ride_messages (request_id, sender_id, message_text) VALUES (?, ?, ?)',
+      [req.params.id, req.user.id, message]
+    );
+    const [rows] = await pool.execute(
+      `SELECT m.id, m.request_id, m.sender_id, m.message_text AS message, m.created_at,
+              u.name AS sender_name
+       FROM ride_messages m
+       JOIN users u ON u.id = m.sender_id
+       WHERE m.id = ?`,
+      [result.insertId]
+    );
+
+    return res.status(201).json(rows[0]);
+  } catch (error) {
+    console.error('Create ride message error:', error);
+    return res.status(500).json({ error: 'Unable to send this message' });
+  }
+}
+
 async function updateRequestStatus(req, res) {
   const { id } = req.params;
   const { status } = req.body;
@@ -190,4 +265,4 @@ async function cancelMyRequest(req, res) {
   }
 }
 
-module.exports = { getMyRequests, createRequest, getTripRequests, updateRequestStatus, cancelMyRequest };
+module.exports = { getMyRequests, createRequest, getTripRequests, getRideMessages, createRideMessage, updateRequestStatus, cancelMyRequest };

@@ -70,6 +70,12 @@
           </div>
         </div>
 
+        <div class="form-group fare-input-group">
+          <label for="fare_per_seat">Fare per seat (৳)</label>
+          <div class="currency-input"><span aria-hidden="true">৳</span><input id="fare_per_seat" name="fare_per_seat" type="number" min="0" max="99999999.99" step="0.01" placeholder="120" required /></div>
+          <small class="field-hint">Set the amount for one passenger seat.</small>
+        </div>
+
         <div class="form-group">
           <label for="notes">Notes</label>
           <textarea id="notes" name="notes" rows="4" placeholder="Any extra details about the trip"></textarea>
@@ -83,7 +89,7 @@
         <div class="preview-topline"><span class="preview-dot"></span> YOUR RIDE PREVIEW</div>
         <div class="preview-route"><span data-preview="start">Starting point</span><span class="preview-route-line"><i></i></span><span data-preview="destination">Destination</span></div>
         <div class="preview-divider"></div>
-        <div class="preview-details"><p><span class="preview-icon">◷</span><span><small>When</small><strong data-preview="when">Choose a date and time</strong></span></p><p><span class="preview-icon preview-seat-icon">◇</span><span><small>Seats</small><strong data-preview="seats">1 seat available</strong></span></p><p><span class="preview-icon preview-car-icon">↗</span><span><small>Vehicle</small><strong data-preview="vehicle">Add vehicle details</strong></span></p></div>
+        <div class="preview-details"><p><span class="preview-icon">◷</span><span><small>When</small><strong data-preview="when">Choose a date and time</strong></span></p><p><span class="preview-icon preview-seat-icon">◇</span><span><small>Seats</small><strong data-preview="seats">1 seat available</strong></span></p><p><span class="preview-icon preview-car-icon">↗</span><span><small>Vehicle</small><strong data-preview="vehicle">Add vehicle details</strong></span></p><p><span class="preview-icon preview-fare-icon">৳</span><span><small>Fare per seat</small><strong data-preview="fare">Enter a fare</strong></span></p></div>
         <p class="preview-note">A clear trip description helps riders know if your journey is right for them.</p>
       </aside>
     </div>

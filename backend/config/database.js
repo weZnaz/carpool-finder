@@ -69,6 +69,7 @@ async function initializeDatabase() {
           trip_date DATE NOT NULL,
           departure_time TIME NOT NULL,
           available_seats INT NOT NULL DEFAULT 0,
+          fare_per_seat DECIMAL(10,2) NOT NULL DEFAULT 0,
           vehicle VARCHAR(150),
           notes TEXT,
           status ENUM('active','completed','cancelled') DEFAULT 'active',
@@ -76,6 +77,11 @@ async function initializeDatabase() {
           FOREIGN KEY (driver_id) REFERENCES users(id) ON DELETE CASCADE
         );
       `);
+
+      const [fareColumns] = await initializedPool.query("SHOW COLUMNS FROM trips LIKE 'fare_per_seat'");
+      if (!fareColumns.length) {
+        await initializedPool.query('ALTER TABLE trips ADD COLUMN fare_per_seat DECIMAL(10,2) NOT NULL DEFAULT 0 AFTER available_seats');
+      }
 
       await initializedPool.query(`
         CREATE TABLE IF NOT EXISTS ride_requests (
@@ -88,6 +94,19 @@ async function initializeDatabase() {
           FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE,
           FOREIGN KEY (rider_id) REFERENCES users(id) ON DELETE CASCADE,
           UNIQUE KEY unique_request (trip_id, rider_id)
+        );
+      `);
+
+      await initializedPool.query(`
+        CREATE TABLE IF NOT EXISTS ride_messages (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          request_id INT NOT NULL,
+          sender_id INT NOT NULL,
+          message_text TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (request_id) REFERENCES ride_requests(id) ON DELETE CASCADE,
+          FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+          INDEX idx_ride_messages_request_created (request_id, created_at)
         );
       `);
 
